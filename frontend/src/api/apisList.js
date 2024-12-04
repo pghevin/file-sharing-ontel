@@ -20,6 +20,10 @@ function url(api) {
     case "uploadfile":
       return `${API_SERVICE}/api/file/upload`;
 
+    case "getfile":
+      return (user_id, folder_id, file_name) =>
+        `${API_SERVICE}/api/file/file/${user_id}/${folder_id}/${file_name}`;
+
     default:
       return API_SERVICE;
   }

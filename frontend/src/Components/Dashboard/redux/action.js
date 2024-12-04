@@ -147,6 +147,8 @@ export const uploadFileAction = (file, folder_id, user_id) => {
         const chunk = file.slice(start, start + chunkSize);
         const formData = new FormData();
 
+        formData.append("user_id", user_id);
+        formData.append("folder_id", folder_id);
         formData.append("fileChunk", chunk);
         formData.append("fileName", file.name);
         formData.append("chunkIndex", Math.floor(start / chunkSize));
@@ -158,19 +160,9 @@ export const uploadFileAction = (file, folder_id, user_id) => {
           await fetch(apiUrl, {
             method: "POST",
             body: formData, // Use FormData directly here
+            mode: "cors",
           });
 
-          const progress = Math.round(
-            ((uploadedChunks + progressEvent.loaded / chunk.size) /
-              totalChunks) *
-              100
-          );
-
-          // Dispatch the progress
-          dispatch({
-            type: types.UPLOAD_FILE_PROGRESS,
-            payload: progress,
-          });
           uploadedChunks++;
         } catch (error) {
           console.error("Error uploading chunk", error);
@@ -206,6 +198,36 @@ export const uploadFileAction = (file, folder_id, user_id) => {
         payload: err.message || "Unexpected error occurred",
       });
       return { error: true, message: err.message };
+    }
+  };
+};
+
+export const fileDownloadAction = (user_id, folder_id, file_name) => {
+  const apiUrl = url("getfile")(user_id, folder_id, file_name);
+  return async (dispatch) => {
+    try {
+      const response = await get(apiUrl, {
+        responseType: "blob", // Handle response as a blob (binary data)
+      });
+
+
+      if (response.data instanceof Blob) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(response.data); // Create a URL for the blob
+        link.download = fileName; // The filename for the downloaded file
+        link.click(); // Trigger the download
+      } else {
+        throw new Error('Response is not a Blob');
+      }
+
+      dispatch({
+        type: types.FILE_DOWNLOAD_ACTION,
+      });
+    } catch (err) {
+      dispatch({
+        type: types.FILE_DOWNLOAD_ACTION_FAIL,
+        payload: err,
+      });
     }
   };
 };

@@ -1,18 +1,17 @@
 const userFilesModel = require("../models/user_files");
 const userFoldersModel = require("../models/user_folders");
 
-const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const upload = multer({ dest: "temp/" }); // Temporary storage for chunks
 
+const files_path = process.env.FILES_PATH;
 exports.userFiles = async (req, res) => {
   try {
     const { folder_id } = req.params;
     let files;
     files = await userFilesModel
       .find({ folder_id })
-      .select("file_name file_type file_size uploaded_s3 folder_id")
+      .select("file_name file_type file_size uploaded_s3 folder_id user_id")
       .lean();
 
     const filesObj = {
@@ -60,7 +59,7 @@ exports.saveFile = async (req, res) => {
 
 exports.uploadFile = async (req, res) => {
   try {
-    const { fileName, chunkIndex, totalChunks } = req.body;
+    const { fileName, chunkIndex, totalChunks, user_id, folder_id } = req.body;
     const fileChunk = req.file; // Uploaded chunk from multer
 
     console.log(fileName, chunkIndex, totalChunks);
@@ -71,14 +70,15 @@ exports.uploadFile = async (req, res) => {
         .json({ error: true, message: "File chunk is missing" });
     }
 
-    const tempDir = "uploads/temp";
-    const uploadDir = "uploads";
+    const tempDir = files_path + `${user_id}/` + `${folder_id}/` + "/temp";
+    const uploadDir = files_path + `${user_id}/` + `${folder_id}`;
 
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
     const tempFilePath = path.join(tempDir, `${fileName}.part${chunkIndex}`);
 
+    console.log(tempFilePath);
     // Save the current chunk to the temp directory
     fs.renameSync(fileChunk.path, tempFilePath);
 
@@ -182,6 +182,32 @@ exports.getFolders = async (req, res) => {
       message: "Fetched successful",
       data: foldersObj,
     });
+  } catch (error) {
+    return res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+exports.getFile = async (req, res) => {
+  try {
+    const { user_id, folder_id, file_name } = req.params;
+
+    const uploadDir =
+      files_path + `${user_id}/` + `${folder_id}/` + `${file_name}`;
+
+    console.log(uploadDir);
+    const filePath = uploadDir;
+    console.log(filePath);
+    // Check if the file exists
+   
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Disposition', `attachment; filename=${file_name}`);
+      res.setHeader('Content-Type', 'application/pdf'); // Change if needed, depending on file type
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res); // Pipe the file to the response stream
+    } else {
+      res.status(404).json({ error: true, message: 'File not found' });
+    }
+ 
   } catch (error) {
     return res.status(500).json({ error: true, message: error.message });
   }

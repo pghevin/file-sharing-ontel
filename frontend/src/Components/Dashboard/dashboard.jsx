@@ -31,11 +31,13 @@ import { userSelector } from "../user-redux/selector";
 import { dashboardSelector } from "./redux/selector";
 import {
   createFolderAction,
+  fileDownloadAction,
   getFilesAction,
   getFoldersAction,
   saveFileAction,
   uploadFileAction,
 } from "./redux/action";
+import url from "../../api/apisList";
 
 const Dashboard = ({ onLogout }) => {
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -85,6 +87,13 @@ const Dashboard = ({ onLogout }) => {
     setFolderHierarchy((prev) => [folder]);
   };
 
+  const handleViewFile = (file) => {
+    dispatch(
+      fileDownloadAction(file?.user_id, file?.folder_id, file?.file_name)
+    );
+    return url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
+  };
+
   const handleBreadcrumbClick = (folder, index) => {
     setCurrentFolder(folder || null);
     setFolderHierarchy(folderHierarchy.slice(0, index + 1));
@@ -97,7 +106,6 @@ const Dashboard = ({ onLogout }) => {
       const user_id = user?._id;
 
       dispatch(uploadFileAction(file, folder_id, user_id));
-      dispatch(saveFileAction(data));
     }
   };
 
@@ -255,7 +263,10 @@ const Dashboard = ({ onLogout }) => {
               files?.length > 0 &&
               files.map((file) => (
                 <Grid item xs={isMobile ? 6 : isTablet ? 3 : 2} key={file._id}>
-                  <Card style={{ height: "100%", position: "relative" }}>
+                  <Card
+                    style={{ height: "100%", position: "relative" }}
+                    onClick={() => handleViewFile(file)}
+                  >
                     <CardContent>
                       <Box
                         sx={{
@@ -292,7 +303,13 @@ const Dashboard = ({ onLogout }) => {
                           borderRadius: "50%",
                         }}
                       >
-                        <FileDownloadIcon />
+                        <a
+                          href={handleViewFile(file)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FileDownloadIcon />{" "}
+                        </a>
                       </IconButton>
                     </CardContent>
                   </Card>
