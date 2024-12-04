@@ -149,34 +149,38 @@ const Dashboard = ({ onLogout }) => {
                                 New
                             </Button>
                             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-                                <MenuItem onClick={() => setDialogOpen(true)}>
-                                    <FolderIcon style={{ marginRight: '8px' }} />
-                                    Create Folder
-                                </MenuItem>
-                                <MenuItem>
-                                    <FileUploadIcon style={{ marginRight: '8px' }} />
-                                    <input
-                                        type="file"
-                                        multiple
-                                        onChange={(e) => {
-                                            const selectedFiles = Array.from(e.target.files).map((file) => ({
-                                                id: Date.now() + Math.random(),
-                                                name: file.name,
-                                                type: file.type,
-                                                folderId: currentFolder?.id || null,
-                                                thumbnail: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
-                                                uploadTime: new Date().toISOString(),
-                                            }));
-                                            setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-                                        }}
-                                        style={{ display: 'none' }}
-                                        id="file-upload"
-                                    />
-                                    <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-                                        Add File
-                                    </label>
-                                </MenuItem>
-                            </Menu>
+    {/* Render Create Folder only if in the root directory */}
+    {currentFolder === null && (
+        <MenuItem onClick={() => setDialogOpen(true)}>
+            <FolderIcon style={{ marginRight: '8px' }} />
+            Create Folder
+        </MenuItem>
+    )}
+    <MenuItem>
+        <FileUploadIcon style={{ marginRight: '8px' }} />
+        <input
+            type="file"
+            multiple
+            onChange={(e) => {
+                const selectedFiles = Array.from(e.target.files).map((file) => ({
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    type: file.type,
+                    folderId: currentFolder?.id || null,
+                    thumbnail: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+                    uploadTime: new Date().toISOString(),
+                }));
+                setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+            }}
+            style={{ display: 'none' }}
+            id="file-upload"
+        />
+        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
+            Add File
+        </label>
+    </MenuItem>
+</Menu>
+
                         </Box>
                     </Box>
                     <Divider />
