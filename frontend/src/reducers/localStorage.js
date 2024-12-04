@@ -19,7 +19,7 @@ export const loadState = () => {
     // return JSON.parse(serializedState);
     const parsedState = JSON.parse(serializedState);
     // Exclude the appManagement state
-    const { appManagement, companiesManagement, ...restState } = parsedState;
+    const { dashboardSelector, ...restState } = parsedState;
     return restState;
   } catch (e) {
     console.warn(e);
@@ -29,7 +29,7 @@ export const loadState = () => {
 
 export const persistState = async (state) => {
   try {
-    const { appManagement, companiesManagement, ...restState } = state;
+    const { dashboardSelector, ...restState } = state;
     localStorage.setItem(localStorageData.STATE, JSON.stringify(restState));
   } catch (e) {
     console.warn(e);

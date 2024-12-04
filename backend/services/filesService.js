@@ -1,4 +1,5 @@
 const userFilesModel = require("../models/user_files");
+const userFoldersModel = require("../models/user_folders");
 
 const multer = require("multer");
 const fs = require("fs");
@@ -7,12 +8,11 @@ const upload = multer({ dest: "temp/" }); // Temporary storage for chunks
 
 exports.userFiles = async (req, res) => {
   try {
-    const { user_id } = req.params;
-    console.log(user_id);
+    const { folder_id } = req.params;
     let files;
     files = await userFilesModel
-      .find({ user_id })
-      .select("file_name file_type file_size uploaded_s3 user_id")
+      .find({ folder_id })
+      .select("file_name file_type file_size uploaded_s3 folder_id")
       .lean();
 
     const filesObj = {
@@ -31,15 +31,16 @@ exports.userFiles = async (req, res) => {
 
 exports.saveFile = async (req, res) => {
   try {
-    const { user_id, file_name, file_type, file_size, uploaded_s3 } = req.body;
+    const { user_id, file_name, file_type, file_size, uploaded_s3, folder_id } =
+      req.body;
 
-    console.log(user_id, file_name, file_type, file_size, uploaded_s3);
     const file = await userFilesModel.create({
       user_id,
       file_name,
       file_type,
       file_size,
       uploaded_s3,
+      folder_id,
     });
     if (file) {
       return res.status(201).json({
@@ -61,6 +62,8 @@ exports.uploadFile = async (req, res) => {
   try {
     const { fileName, chunkIndex, totalChunks } = req.body;
     const fileChunk = req.file; // Uploaded chunk from multer
+
+    console.log(fileName, chunkIndex, totalChunks);
 
     if (!fileChunk) {
       return res
@@ -119,6 +122,67 @@ exports.uploadFile = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+exports.createFolder = async (req, res) => {
+  try {
+    const { folder_name, user_id } = req.body;
+
+    let folderExists = await userFoldersModel
+      .findOne({
+        folder_name,
+        user_id,
+      })
+      .lean();
+
+    if (folderExists) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Folder name already exists" });
+    }
+
+    const user = await userFoldersModel.create({
+      folder_name,
+      user_id,
+    });
+    if (user) {
+      return res.status(201).json({
+        error: false,
+        message: "Folder created",
+        data: user,
+      });
+    } else {
+      return res
+        .status(500)
+        .json({ error: true, message: "Ops!, Something went wrong" });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+exports.getFolders = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    console.log(user_id);
+    let folders;
+    folders = await userFoldersModel
+      .find({ user_id })
+      .select("folder_name user_id")
+      .lean();
+
+    const foldersObj = {
+      folders,
+    };
+
+    return res.status(200).json({
+      error: false,
+      message: "Fetched successful",
+      data: foldersObj,
+    });
+  } catch (error) {
     return res.status(500).json({ error: true, message: error.message });
   }
 };

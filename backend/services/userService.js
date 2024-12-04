@@ -79,6 +79,7 @@ exports.login = async (req, res) => {
     const userObj = {
       name: user.name,
       user_id: user._id,
+      _id: user._id,
       email,
       company_id: user.company?._id,
       company: company,
