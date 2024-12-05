@@ -34,6 +34,7 @@ import {
   fileDownloadAction,
   getFilesAction,
   getFoldersAction,
+  getUserFilesAction,
   saveFileAction,
   uploadFileAction,
 } from "./redux/action";
@@ -55,7 +56,7 @@ const Dashboard = ({ onLogout }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
-    dispatch(getFoldersAction(user?._id));
+    dispatch(getUserFilesAction(user?._id));
   }, []);
 
   const handleMenuClick = (event) => {
@@ -91,10 +92,11 @@ const Dashboard = ({ onLogout }) => {
     dispatch(
       fileDownloadAction(file?.user_id, file?.folder_id, file?.file_name)
     );
-    return url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
+    // return url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
   };
 
   const handleBreadcrumbClick = (folder, index) => {
+    dispatch(getUserFilesAction(user?._id));
     setCurrentFolder(folder || null);
     setFolderHierarchy(folderHierarchy.slice(0, index + 1));
   };
@@ -102,7 +104,7 @@ const Dashboard = ({ onLogout }) => {
   const onDrop = (acceptedFiles) => {
     for (var i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
-      const folder_id = currentFolder._id;
+      const folder_id = currentFolder?._id;
       const user_id = user?._id;
 
       dispatch(uploadFileAction(file, folder_id, user_id));
@@ -258,8 +260,7 @@ const Dashboard = ({ onLogout }) => {
                 </Grid>
               ))}
 
-            {currentFolder &&
-              files &&
+            {files &&
               files?.length > 0 &&
               files.map((file) => (
                 <Grid item xs={isMobile ? 6 : isTablet ? 3 : 2} key={file._id}>
@@ -302,14 +303,9 @@ const Dashboard = ({ onLogout }) => {
                           backgroundColor: "#fff",
                           borderRadius: "50%",
                         }}
+                        onClick={() => handleViewFile(file)}
                       >
-                        <a
-                          href={handleViewFile(file)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <FileDownloadIcon />{" "}
-                        </a>
+                        <FileDownloadIcon />
                       </IconButton>
                     </CardContent>
                   </Card>

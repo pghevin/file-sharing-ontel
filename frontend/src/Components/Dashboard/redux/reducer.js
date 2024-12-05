@@ -23,6 +23,13 @@ export default function reduce(state = initialState, action = {}) {
         folders: action.payload,
       };
 
+    case types.GET_USER_FILES_ACTION:
+      return {
+        ...state,
+        folders: action.payload.folders,
+        files: action.payload.files,
+      };
+
     case types.GET_FILES_ACTION:
       return {
         ...state,
@@ -42,6 +49,7 @@ export default function reduce(state = initialState, action = {}) {
       };
 
     case types.CREATE_FOLDER_ACTION_FAIL:
+    case types.GET_USER_FILES_ACTION_FAIL:
     case types.GET_FILES_ACTION_FAIL:
     case types.GET_FOLDERS_ACTION_FAIL:
     case types.UPLOAD_FILE_ACTION_FAIL:

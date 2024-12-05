@@ -36,6 +36,46 @@ export const createFolderAction = (data) => {
   };
 };
 
+export const getUserFilesAction = (user_id) => {
+  console.log(user_id);
+  const apiUrl = url("homefiles")(user_id);
+
+  return async (dispatch) => {
+    try {
+      const res = await get(apiUrl);
+      let folders;
+      let files;
+
+      if (res?.error) {
+        dispatch({
+          type: types.GET_USER_FILES_ACTION_FAIL,
+          payload: res?.message || "Something went wrong",
+        });
+        return;
+      }
+
+      if (res?.data) {
+        folders = res?.data?.folders;
+        files = res?.data?.files;
+      }
+
+      const result = {
+        folders,
+        files,
+      };
+      dispatch({
+        type: types.GET_USER_FILES_ACTION,
+        payload: result,
+      });
+    } catch (err) {
+      dispatch({
+        type: types.GET_USER_FILES_ACTION_FAIL,
+        payload: err,
+      });
+    }
+  };
+};
+
 export const getFoldersAction = (user_id) => {
   console.log(user_id);
   const apiUrl = url("folders")(user_id);
@@ -120,7 +160,12 @@ export const saveFileAction = (data) => {
       if (res?.data) {
         folder = res?.data;
       }
-      dispatch(getFilesAction(data?.folder_id));
+
+      if (data?.folder_id) {
+        dispatch(getFilesAction(data?.folder_id));
+      } else {
+        dispatch(getUserFilesAction(data?.user_id));
+      }
       dispatch({
         type: types.SAVE_FILE_ACTION,
         payload: folder,
@@ -201,32 +246,47 @@ export const uploadFileAction = (file, folder_id, user_id) => {
     }
   };
 };
-
 export const fileDownloadAction = (user_id, folder_id, file_name) => {
   const apiUrl = url("getfile")(user_id, folder_id, file_name);
+
   return async (dispatch) => {
     try {
       const response = await get(apiUrl, {
-        responseType: "blob", // Handle response as a blob (binary data)
+        responseType: "blob", // Treat the response as binary data
       });
 
+      // Extract the file type dynamically from the response headers
+      const contentType =
+        response.headers["content-type"] || "application/octet-stream";
 
-      if (response.data instanceof Blob) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(response.data); // Create a URL for the blob
-        link.download = fileName; // The filename for the downloaded file
-        link.click(); // Trigger the download
-      } else {
-        throw new Error('Response is not a Blob');
-      }
+      // Create a Blob object with the appropriate type
+      const fileBlob = new Blob([response.data], { type: contentType });
 
+      // Generate a temporary URL for the file
+      const downloadUrl = window.URL.createObjectURL(fileBlob);
+
+      // Create a temporary anchor element to trigger the download
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = file_name; // Use the provided file name
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      // Dispatch success action
       dispatch({
         type: types.FILE_DOWNLOAD_ACTION,
       });
     } catch (err) {
+      console.error("File download failed:", err);
+
+      // Dispatch failure action with error details
       dispatch({
         type: types.FILE_DOWNLOAD_ACTION_FAIL,
-        payload: err,
+        payload: err.message,
       });
     }
   };

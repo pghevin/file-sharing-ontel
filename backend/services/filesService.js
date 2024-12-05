@@ -5,7 +5,41 @@ const fs = require("fs");
 const path = require("path");
 
 const files_path = process.env.FILES_PATH;
+
 exports.userFiles = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    let files;
+    files = await userFilesModel
+      .find({
+        user_id,
+        $or: [{ folder_id: { $exists: false } }, { folder_id: null }],
+      })
+      .select("file_name file_type file_size uploaded_s3 folder_id user_id")
+      .lean();
+
+    let folders;
+    folders = await userFoldersModel
+      .find({ user_id })
+      .select("folder_name user_id")
+      .lean();
+
+    const dataObj = {
+      folders,
+      files,
+    };
+
+    return res.status(200).json({
+      error: false,
+      message: "Fetched successful",
+      data: dataObj,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+exports.folderFiles = async (req, res) => {
   try {
     const { folder_id } = req.params;
     let files;
@@ -59,9 +93,13 @@ exports.saveFile = async (req, res) => {
 
 exports.uploadFile = async (req, res) => {
   try {
-    const { fileName, chunkIndex, totalChunks, user_id, folder_id } = req.body;
+    const { fileName, chunkIndex, totalChunks, user_id } = req.body;
     const fileChunk = req.file; // Uploaded chunk from multer
-
+    const folder_id =
+      (req.body.folder_id &&
+        req.body.folder_id !== "undefined" &&
+        req.body.folder_id) ||
+      "home";
     console.log(fileName, chunkIndex, totalChunks);
 
     if (!fileChunk) {
@@ -198,16 +236,12 @@ exports.getFile = async (req, res) => {
     const filePath = uploadDir;
     console.log(filePath);
     // Check if the file exists
-   
+
     if (fs.existsSync(filePath)) {
-      res.setHeader('Content-Disposition', `attachment; filename=${file_name}`);
-      res.setHeader('Content-Type', 'application/pdf'); // Change if needed, depending on file type
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res); // Pipe the file to the response stream
+      res.sendFile(filePath);
     } else {
-      res.status(404).json({ error: true, message: 'File not found' });
+      res.status(404).json({ error: true, message: "File not found" });
     }
- 
   } catch (error) {
     return res.status(500).json({ error: true, message: error.message });
   }

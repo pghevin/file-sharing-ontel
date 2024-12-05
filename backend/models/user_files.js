@@ -3,7 +3,7 @@ const { Schema, mongoose } = require("mongoose");
 const userFilesSchema = Schema(
   {
     user_id: { ref: "user", type: Schema.Types.ObjectId, required: true },
-    folder_id: { ref: "folders", type: Schema.Types.ObjectId, required: true },
+    folder_id: { ref: "folders", type: Schema.Types.ObjectId },
     file_name: { type: String, required: true },
     file_type: { type: String, required: true },
     file_size: { type: String, required: true },

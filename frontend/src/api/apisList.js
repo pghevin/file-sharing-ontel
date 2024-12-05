@@ -11,6 +11,9 @@ function url(api) {
     case "file":
       return `${API_SERVICE}/api/file/save`;
 
+    case "homefiles":
+      return (user_id) => `${API_SERVICE}/api/file/home/${user_id}`;
+
     case "folders":
       return (user_id) => `${API_SERVICE}/api/file/folders/${user_id}`;
 
@@ -22,7 +25,9 @@ function url(api) {
 
     case "getfile":
       return (user_id, folder_id, file_name) =>
-        `${API_SERVICE}/api/file/file/${user_id}/${folder_id}/${file_name}`;
+        `${API_SERVICE}/api/file/file/${user_id}/${
+          folder_id || "home"
+        }/${file_name}`;
 
     default:
       return API_SERVICE;
