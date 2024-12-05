@@ -23,6 +23,9 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AddIcon from "@mui/icons-material/Add";
 import FileUploadIcon from "@mui/icons-material/UploadFile";
 import FileDownloadIcon from "@mui/icons-material/Download";
+import ImageIcon from "@mui/icons-material/Image"; // For image files
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF files
+import DescriptionIcon from "@mui/icons-material/Description"; // For document files
 import { useDropzone } from "react-dropzone"; // Importing react-dropzone for drag and drop functionality
 import Sidebar from "../Sidebar/sidebar";
 import moment from "moment";
@@ -89,11 +92,34 @@ const Dashboard = ({ onLogout }) => {
   };
 
   const handleViewFile = (file) => {
-    dispatch(
-      fileDownloadAction(file?.user_id, file?.folder_id, file?.file_name)
-    );
-    // return url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
+    // Trigger file download
+    dispatch(fileDownloadAction(file?.user_id, file?.folder_id, file?.file_name));
+
+    // If you want to directly download the file, you can use the `url` helper function:
+    const fileUrl = url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
+
+    // Create an anchor tag to download the file
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = file?.file_name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  // New function to handle file download
+  const handleDownloadFile = (file) => {
+    const fileUrl = url("getfile")(file?.user_id, file?.folder_id, file?.file_name);
+
+    // Create an anchor tag to trigger file download
+    const a = document.createElement("a");
+    a.href = fileUrl;
+    a.download = file?.file_name; // Set the filename for download
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
 
   const handleBreadcrumbClick = (folder, index) => {
     dispatch(getUserFilesAction(user?._id));
@@ -116,6 +142,33 @@ const Dashboard = ({ onLogout }) => {
     multiple: true,
     accept: "image/*, .pdf, .docx, .txt, .xlsx",
   });
+
+  // Function to get file thumbnail based on file type
+  const getFileThumbnail = (file) => {
+    const fileType = file?.file_name?.split(".").pop().toLowerCase();
+
+    // Log the file type to debug
+    console.log('File type:', fileType);
+
+    if (fileType === "pdf") {
+      return <PictureAsPdfIcon fontSize="large" sx={{ color: "#D32F2F" }} />; // Red color for PDF
+    } else if (fileType === "docx" || fileType === "doc") {
+      return <DescriptionIcon fontSize="large" sx={{ color: "#1976D2" }} />; // Blue color for Word documents
+    } else if (fileType === "xlsx") {
+      return <DescriptionIcon fontSize="large" sx={{ color: "#388E3C" }} />; // Green color for Excel files
+    } else if (fileType === "jpg" || fileType === "jpeg" || fileType === "png" || fileType === "gif") {
+      // If it's an image file, ensure the thumbnail exists
+      return file.thumbnail ? (
+        <img src={file.thumbnail} alt={file.file_name} style={{ maxHeight: "100%", maxWidth: "100%" }} />
+      ) : (
+        <ImageIcon fontSize="large" sx={{ color: "#757575" }} />
+      );
+    } else {
+      return <ImageIcon fontSize="large" sx={{ color: "#757575" }} />; // Default icon for unknown file types
+    }
+  };
+
+
 
   return (
     <div style={{ height: "100vh" }}>
@@ -279,23 +332,17 @@ const Dashboard = ({ onLogout }) => {
                           backgroundColor: "#f5f5f5",
                         }}
                       >
-                        {file.thumbnail ? (
-                          <img
-                            src={file.thumbnail}
-                            alt={file.name}
-                            style={{ maxHeight: "100%", maxWidth: "100%" }}
-                          />
-                        ) : (
-                          <FileUploadIcon fontSize="large" />
-                        )}
+                        {/* Here the getFileThumbnail function is used to get the appropriate thumbnail */}
+                        {getFileThumbnail(file)}
                       </Box>
-                      <Typography variant="body2" noWrap title={file.file_name}>
+                      <Typography variant="body2" noWrap title={file.file_name} onClick={() => handleViewFile(file)}>
                         {file?.file_name?.slice(0, 15) + "..."}
                       </Typography>
                       <Typography variant="caption">
                         {moment(file?.uploadTime).format("MMMM Do YYYY")}
                       </Typography>
                       <IconButton
+                        title="sdfj"
                         style={{
                           position: "absolute",
                           bottom: "10px",
@@ -303,7 +350,7 @@ const Dashboard = ({ onLogout }) => {
                           backgroundColor: "#fff",
                           borderRadius: "50%",
                         }}
-                        onClick={() => handleViewFile(file)}
+                        onClick={() => handleDownloadFile(file)}
                       >
                         <FileDownloadIcon />
                       </IconButton>
@@ -311,6 +358,7 @@ const Dashboard = ({ onLogout }) => {
                   </Card>
                 </Grid>
               ))}
+
           </Grid>
         </Box>
 
