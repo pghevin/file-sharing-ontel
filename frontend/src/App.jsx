@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Components/Login/login';
 import Dashboard from './Components/Dashboard/dashboard';
-import CompanyInfo from './Components/Company Info/companyinfo';  // Import CompanyInfo component
+import CompanyInfo from './Components/CompanyInfo/companyinfo';  // Import CompanyInfo component
 import { userSelector } from './Components/user-redux/selector';
 import { userLogoutAction } from './Components/user-redux/action';
 import { useDispatch, useSelector } from 'react-redux';
