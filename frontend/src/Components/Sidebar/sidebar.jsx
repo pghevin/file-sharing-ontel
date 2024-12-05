@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
-import {
-    Drawer,
-    List,
-    ListItem,
-    ListItemText,
-    Typography,
-    Divider,
-    Box,
-    Button,
-    ListItemIcon,
-    useMediaQuery,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { Drawer, List, ListItem, ListItemText, Divider, Box, Button, ListItemIcon, useMediaQuery } from '@mui/material';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import BusinessIcon from '@mui/icons-material/Business'; // Add icon for CompanyInfo
 import Logo from '../../assets/logo.png';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
 const Sidebar = ({ onLogout }) => {
+    const navigate = useNavigate();  // Initialize navigate
     const isMobileSmall = useMediaQuery('(max-width: 479px)');
     const isMobileLarge = useMediaQuery('(min-width: 480px) and (max-width: 767px)');
     const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1199px)');
@@ -26,12 +17,14 @@ const Sidebar = ({ onLogout }) => {
     const [activeItem, setActiveItem] = useState('Files');
 
     const menuItems = [
-        { label: 'Files', icon: <InsertDriveFileIcon /> },
-        { label: 'Help', icon: <HelpOutlineIcon /> },
+        { label: 'Files', icon: <InsertDriveFileIcon />, path: '/files' },
+        { label: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
+        { label: 'Company Info', icon: <BusinessIcon />, path: '/companyinfo' }, // New menu item
     ];
 
-    const handleMenuItemClick = (label) => {
+    const handleMenuItemClick = (label, path) => {
         setActiveItem(label);
+        navigate(path);  // Navigate to the selected path
     };
 
     const handleLogout = () => {
@@ -52,28 +45,10 @@ const Sidebar = ({ onLogout }) => {
                 },
             }}
         >
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: isMobileSmall ? 1 : 2,
-                    height: '100%',
-                }}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', padding: isMobileSmall ? 1 : 2, height: '100%' }}>
                 {/* Logo Section */}
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginBottom: isMobileSmall ? 1 : 2,
-                    }}
-                >
-                    <img
-                        src={Logo}
-                        alt="Logo"
-                        style={{ width: isMobileSmall ? '40px' : isMobileLarge ? '80px' : '150px' }}
-                    />
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: isMobileSmall ? 1 : 2 }}>
+                    <img src={Logo} alt="Logo" style={{ width: isMobileSmall ? '40px' : isMobileLarge ? '80px' : '150px' }} />
                 </Box>
 
                 <Divider sx={{ marginBottom: isMobileSmall ? 1 : 2 }} />
@@ -95,13 +70,9 @@ const Sidebar = ({ onLogout }) => {
                                 },
                                 padding: isMobileSmall ? '5px' : '10px',
                             }}
-                            onClick={() => handleMenuItemClick(item.label)}
+                            onClick={() => handleMenuItemClick(item.label, item.path)}  // Pass path to handleMenuItemClick
                         >
-                            <ListItemIcon
-                                sx={{
-                                    color: activeItem === item.label ? '#00796b' : 'inherit',
-                                }}
-                            >
+                            <ListItemIcon sx={{ color: activeItem === item.label ? '#00796b' : 'inherit' }}>
                                 {item.icon}
                             </ListItemIcon>
                             {!isMobileSmall && (
@@ -128,22 +99,21 @@ const Sidebar = ({ onLogout }) => {
                     fullWidth
                     sx={{
                         marginTop: 2,
-                        padding: isMobileSmall ? '8px' : '10px', // Adjust padding for mobile
+                        padding: isMobileSmall ? '8px' : '10px',
                         fontWeight: '600',
                         borderRadius: 2,
                         textTransform: 'none',
                         '&:hover': {
                             backgroundColor: '#d32f2f',
                         },
-                        fontSize: isMobileSmall ? '12px' : '14px', // Adjust font size for mobile
-                        display: 'flex', // Ensure flexbox display to align text and icon
-                        justifyContent: isMobileSmall ? 'center' : 'flex-start', // Center text/icon on mobile
+                        fontSize: isMobileSmall ? '12px' : '14px',
+                        display: 'flex',
+                        justifyContent: isMobileSmall ? 'center' : 'flex-start',
                     }}
-                    startIcon={!isMobileSmall && <ExitToAppIcon />} // Hide icon on mobile
+                    startIcon={!isMobileSmall && <ExitToAppIcon />}
                 >
-                    {isMobileSmall ? <ExitToAppIcon /> : 'Logout'} {/* Show only icon on mobile */}
+                    {isMobileSmall ? <ExitToAppIcon /> : 'Logout'}
                 </Button>
-
             </Box>
         </Drawer>
     );
