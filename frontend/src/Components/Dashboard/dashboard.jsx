@@ -339,7 +339,7 @@ const Dashboard = ({ onLogout }) => {
                         {file?.file_name?.slice(0, 15) + "..."}
                       </Typography>
                       <Typography variant="caption">
-                        {moment(file?.uploadTime).format("MMMM Do YYYY")}
+                        {moment(file?.createdAt).format("MMMM Do YYYY")}
                       </Typography>
                       <IconButton
                         title="sdfj"

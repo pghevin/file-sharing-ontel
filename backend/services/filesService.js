@@ -15,7 +15,7 @@ exports.userFiles = async (req, res) => {
         user_id,
         $or: [{ folder_id: { $exists: false } }, { folder_id: null }],
       })
-      .select("file_name file_type file_size uploaded_s3 folder_id user_id")
+      .select("file_name file_type file_size uploaded_s3 folder_id user_id createdAt")
       .lean();
 
     let folders;
@@ -45,7 +45,7 @@ exports.folderFiles = async (req, res) => {
     let files;
     files = await userFilesModel
       .find({ folder_id })
-      .select("file_name file_type file_size uploaded_s3 folder_id user_id")
+      .select("file_name file_type file_size uploaded_s3 folder_id user_id createdAt")
       .lean();
 
     const filesObj = {
@@ -208,7 +208,7 @@ exports.getFolders = async (req, res) => {
     let folders;
     folders = await userFoldersModel
       .find({ user_id })
-      .select("folder_name user_id")
+      .select("folder_name user_id createdAt")
       .lean();
 
     const foldersObj = {
